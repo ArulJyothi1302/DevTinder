@@ -1,4 +1,4 @@
-  <!-- Http Methods
+<!-- Http Methods
   app.use("/user", (req, res) => res.send("User profile")); all the below http method  will not work due to order of the code
   {app.use("/home", (req, res) => {
     res.send("Hello to the server");
