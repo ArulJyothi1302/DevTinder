@@ -4,6 +4,8 @@ const conDb = require("./config/database");
 app.use(express.json());
 const User = require("./models/user");
 const { validateSignUp } = require("./utils/helper");
+
+const { validateLogin } = require("./utils/login");
 const bcrypt = require("bcrypt");
 app.post("/signup", async (req, res) => {
   try {
@@ -115,6 +117,27 @@ app.get("/feed", async (req, res) => {
   const user = await User.find({});
 
   user.length === 0 ? res.send(user) : res.status(404).send("User Not Found");
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    validateLogin(req);
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email });
+    //Email Check
+    if (!user) {
+      throw new Error("Invalid Credentials");
+    }
+    const isCorrectPassword = await bcrypt.compare(password, user.password);
+    //Passwod Check
+    if (!isCorrectPassword) {
+      throw new Error("Invalid Credentials");
+    } else {
+      res.send("Login Successful");
+    }
+  } catch (err) {
+    res.status(400).send("ERROR:" + err.message);
+  }
 });
 conDb()
   .then(() => {
