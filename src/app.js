@@ -3,22 +3,30 @@ const app = express();
 const conDb = require("./config/database");
 app.use(express.json());
 const User = require("./models/user");
-
+const { validateSignUp } = require("./utils/helper");
+const bcrypt = require("bcrypt");
 app.post("/signup", async (req, res) => {
-  const user = new User(
-    req.body
-    //   {
-    //   fName: "Arul",
-    //   lName: "Jyothi",
-    //   email: "arul@gmail.com",
-    //   password: "arul1302",
-    // }
-  );
   try {
-    user.save();
+    validateSignUp(req);
+    const { fName, lName, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log(hashedPassword);
+    const user = new User({ fName, lName, email, password: hashedPassword });
+    const data = user;
+    if (data.skills) {
+      if (data.skills.length > 10) {
+        throw new Error(
+          "Skills can not be more than 10 only Add upto 10 Skills"
+        );
+      }
+    }
+    if (data.age <= 5) {
+      throw new Error("Set a Valid Age");
+    }
+    await user.save();
     res.send("Data Added successfully");
   } catch (err) {
-    res.status(404).send("Error in saving " + err.message);
+    res.status(400).send("ERROR: " + err.message);
   }
 });
 
@@ -55,9 +63,9 @@ app.delete("/user", async (req, res) => {
 
 //Updating one record
 
-app.patch("/user", async (req, res) => {
-  const userId = req.body.id;
-  const userEmail = req.body.email;
+app.patch("/user/:id", async (req, res) => {
+  const userId = req.params?.id;
+  // const userEmail = req.body.email;
   const upData = req.body;
   // try {
   //   const user = await User.findByIdAndUpdate(userId, upData, {
@@ -67,14 +75,38 @@ app.patch("/user", async (req, res) => {
   //   res.send("Updated Succefully");
   // }
   try {
-    const user = await User.findOneAndUpdate({ email: userEmail }, upData, {
+    const ALLOWED_UPDATES = [
+      "gender",
+      "age",
+      "fName",
+      "lName",
+      "skills",
+      "password",
+    ];
+    const isAllowed = Object.keys(upData).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+    if (!isAllowed) {
+      throw new Error(" Can't updae the profile");
+    }
+    if (upData.skills) {
+      if (upData.skills.length > 10) {
+        throw new Error(" Skills can not be more than 10");
+      }
+    }
+    if (upData.age < 5) {
+      throw new Error(" Age can not be less than 5");
+    }
+
+    // const user = await User.findOneAndUpdate({ email: userEmail }, upData, {
+    const user = await User.findByIdAndUpdate({ _id: userId }, upData, {
       returnDocument: "after",
       runValidators: true,
     });
     console.log(user);
     res.send("Updated Succefully");
   } catch (err) {
-    res.status(404).send("Something Went Wrong");
+    res.status(404).send("Something Went Wrong" + err.message);
   }
 });
 
