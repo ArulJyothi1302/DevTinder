@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = mongoose.Schema(
   {
@@ -20,6 +21,11 @@ const userSchema = mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid Email");
+        }
+      },
     },
     password: {
       type: String,
@@ -46,6 +52,9 @@ const userSchema = mongoose.Schema(
       type: String,
       default:
         "https://www.google.com/url?sa=i&url=https%3A%2F%2Fuxwing.com%2Fuser-male-icon%2F&psig=AOvVaw0WottDsniUsUUBOAqad5LQ&ust=1734887116717000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCJiElaqsuYoDFQAAAAAdAAAAABAE",
+    },
+    skills: {
+      type: [String],
     },
   },
   {
