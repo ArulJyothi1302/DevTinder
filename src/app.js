@@ -1,18 +1,23 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const app = express();
 const conDb = require("./config/database");
 app.use(express.json());
+
+app.use(cookieParser());
 const User = require("./models/user");
 const { validateSignUp } = require("./utils/helper");
 
 const { validateLogin } = require("./utils/login");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { UserAuth } = require("./middleware/UserAuth");
 app.post("/signup", async (req, res) => {
   try {
     validateSignUp(req);
     const { fName, lName, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log(hashedPassword);
+    // console.log(hashedPassword);
     const user = new User({ fName, lName, email, password: hashedPassword });
     const data = user;
     if (data.skills) {
@@ -133,11 +138,32 @@ app.post("/login", async (req, res) => {
     if (!isCorrectPassword) {
       throw new Error("Invalid Credentials");
     } else {
+      const token = jwt.sign({ _id: user._id }, "Dev@Comm1234", {
+        expiresIn: "8h",
+      });
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 8 * 3600000),
+      });
       res.send("Login Successful");
     }
   } catch (err) {
     res.status(400).send("ERROR:" + err.message);
   }
+});
+app.get("/profile", UserAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      throw new Error("User not found");
+    }
+    await res.send(user);
+  } catch (err) {
+    res.status(400).send("ERROR:" + err.message);
+  }
+});
+app.post("/sendrequest", UserAuth, async (req, res) => {
+  const user = req.user;
+  res.send(user.fName + " Sent Request");
 });
 conDb()
   .then(() => {
