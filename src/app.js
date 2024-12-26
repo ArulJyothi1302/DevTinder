@@ -2,41 +2,20 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const app = express();
 const conDb = require("./config/database");
+
+const authRouter = require("./router/authroute");
+const profileRoute = require("./router/profileroute");
+const reqRoute = require("./router/reqroute");
+const feedRoute = require("./router/feedRoute");
 app.use(express.json());
 
 app.use(cookieParser());
 const User = require("./models/user");
-const { validateSignUp } = require("./utils/helper");
 
-const { validateLogin } = require("./utils/login");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { UserAuth } = require("./middleware/UserAuth");
-app.post("/signup", async (req, res) => {
-  try {
-    validateSignUp(req);
-    const { fName, lName, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log(hashedPassword);
-    const user = new User({ fName, lName, email, password: hashedPassword });
-    const data = user;
-    if (data.skills) {
-      if (data.skills.length > 10) {
-        throw new Error(
-          "Skills can not be more than 10 only Add upto 10 Skills"
-        );
-      }
-    }
-    if (data.age <= 5) {
-      throw new Error("Set a Valid Age");
-    }
-    await user.save();
-    res.send("Data Added successfully");
-  } catch (err) {
-    res.status(400).send("ERROR: " + err.message);
-  }
-});
-
+app.use("/", authRouter);
+app.use("/", profileRoute);
+app.use("/", feedRoute);
+app.use("/", reqRoute);
 app.get("/user", async (req, res) => {
   const userEmail = req.body.email;
   const user = await User.findOne({ email: userEmail });
@@ -67,9 +46,7 @@ app.delete("/user", async (req, res) => {
     res.status(404).send("Something went Wrong");
   }
 });
-
 //Updating one record
-
 app.patch("/user/:id", async (req, res) => {
   const userId = req.params?.id;
   // const userEmail = req.body.email;
@@ -116,53 +93,7 @@ app.patch("/user/:id", async (req, res) => {
     res.status(404).send("Something Went Wrong" + err.message);
   }
 });
-
 //Get all data
-app.get("/feed", async (req, res) => {
-  const user = await User.find({});
-
-  user.length === 0 ? res.send(user) : res.status(404).send("User Not Found");
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    validateLogin(req);
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: email });
-    //Email Check
-    if (!user) {
-      throw new Error("Invalid Credentials");
-    }
-    const isCorrectPassword = await user.validatePassword(password);
-    //Passwod Check
-    if (!isCorrectPassword) {
-      throw new Error("Invalid Credentials");
-    } else {
-      const token = await user.getJwt();
-      res.cookie("token", token, {
-        expires: new Date(Date.now() + 8 * 3600000),
-      });
-      res.send("Login Successful");
-    }
-  } catch (err) {
-    res.status(400).send("ERROR:" + err.message);
-  }
-});
-app.get("/profile", UserAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      throw new Error("User not found");
-    }
-    await res.send(user);
-  } catch (err) {
-    res.status(400).send("ERROR:" + err.message);
-  }
-});
-app.post("/sendrequest", UserAuth, async (req, res) => {
-  const user = req.user;
-  res.send(user.fName + " Sent Request");
-});
 conDb()
   .then(() => {
     console.log("Db Connected Succefully");
