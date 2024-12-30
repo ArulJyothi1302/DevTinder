@@ -11,4 +11,22 @@ const validateSignUp = (req) => {
     throw new Error("Enter a valid Strong Password");
   }
 };
-module.exports = { validateSignUp };
+const validateEditProfile = (req) => {
+  const AllowedData = ["fName", "lName", "email", "gender", "skills", "age"];
+  const isAllowed = Object.keys(req.body).every((field) =>
+    AllowedData.includes(field)
+  );
+  return isAllowed;
+};
+
+const validatePassword = (req) => {
+  const AllowedData = ["password"];
+  const isAllowed = Object.keys(req.body).every((field) =>
+    AllowedData.includes(field)
+  );
+  if (!validator.isStrongPassword(req.body.password)) {
+    throw new Error("Invalid password, password should be Strong ");
+  }
+  return isAllowed;
+};
+module.exports = { validateSignUp, validateEditProfile, validatePassword };
