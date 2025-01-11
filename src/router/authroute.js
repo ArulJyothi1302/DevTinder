@@ -9,10 +9,18 @@ const bcrypt = require("bcrypt");
 authRouter.post("/signup", async (req, res) => {
   try {
     validateSignUp(req);
-    const { fName, lName, email, password } = req.body;
+    const { fName, lName, email, password, age, skills, gender } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     // console.log(hashedPassword);
-    const user = new User({ fName, lName, email, password: hashedPassword });
+    const user = new User({
+      fName,
+      lName,
+      email,
+      password: hashedPassword,
+      age,
+      skills,
+      gender,
+    });
     const data = user;
     if (data.skills) {
       if (data.skills.length > 10) {
@@ -51,7 +59,7 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, {
         expires: new Date(Date.now() + 8 * 3600000),
       });
-      res.send("Login Successful");
+      res.send(user);
     }
   } catch (err) {
     res.status(400).send("ERROR:" + err.message);

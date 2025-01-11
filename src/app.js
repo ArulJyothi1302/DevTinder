@@ -1,12 +1,22 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const app = express();
+
+const cors = require("cors");
 const conDb = require("./config/database");
 
 const authRouter = require("./router/authroute");
 const profileRoute = require("./router/profileroute");
 const reqRoute = require("./router/reqroute");
 const feedRoute = require("./router/feedRoute");
+const userRoute = require("./router/userRoute");
+
+app.use(
+  cors({
+    origin: "http://localhost:5173/login/",
+    credentials: true,
+  })
+); //
 app.use(express.json());
 
 app.use(cookieParser());
@@ -16,6 +26,7 @@ app.use("/", authRouter);
 app.use("/", profileRoute);
 app.use("/", feedRoute);
 app.use("/", reqRoute);
+app.use("/", userRoute);
 app.get("/user", async (req, res) => {
   const userEmail = req.body.email;
   const user = await User.findOne({ email: userEmail });
