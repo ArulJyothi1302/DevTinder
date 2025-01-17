@@ -6,7 +6,6 @@ const { validateEditProfile, validatePassword } = require("../utils/helper");
 const User = require("../models/user");
 const { validatePasswordUpdate } = require("../controller/userController");
 profileRoute.get("/profile/view", UserAuth, async (req, res) => {
-  console.log("Inside Profile");
   try {
     const user = req.user;
     if (!user) {
@@ -18,10 +17,8 @@ profileRoute.get("/profile/view", UserAuth, async (req, res) => {
   }
 });
 profileRoute.patch("/profile/edit", UserAuth, async (req, res) => {
-  console.log("Inside Patch");
   try {
     if (!validateEditProfile(req)) {
-      console.log("Validating.....");
       throw new Error("Unable to Update the Profile");
     }
     const loggedinUser = req.user;
@@ -40,7 +37,6 @@ profileRoute.patch("/profile/edit", UserAuth, async (req, res) => {
       data: loggedinUser,
     });
   } catch (err) {
-    console.log("Error Arrived");
     res.status(404).send("ERROR:" + err.message);
   }
 });
@@ -55,7 +51,6 @@ profileRoute.patch("/profile/password", UserAuth, async (req, res) => {
     }
 
     await validatePasswordUpdate(loggedinUser, req.body.password);
-    console.log("patch req");
     res.json({
       message: `${loggedinUser.fName} your  Password Updated`,
       data: loggedinUser,
