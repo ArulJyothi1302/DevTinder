@@ -9,10 +9,18 @@ const bcrypt = require("bcrypt");
 authRouter.post("/signup", async (req, res) => {
   try {
     validateSignUp(req);
-    const { fName, lName, email, password } = req.body;
+    const { fName, lName, email, password, age, skills, gender } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     // console.log(hashedPassword);
-    const user = new User({ fName, lName, email, password: hashedPassword });
+    const user = new User({
+      fName,
+      lName,
+      email,
+      password: hashedPassword,
+      age,
+      skills,
+      gender,
+    });
     const data = user;
     if (data.skills) {
       if (data.skills.length > 10) {
@@ -24,8 +32,13 @@ authRouter.post("/signup", async (req, res) => {
     if (data.age <= 5) {
       throw new Error("Set a Valid Age");
     }
-    await user.save();
-    res.send("Data Added successfully");
+    const savedUser = await user.save();
+    const token = await savedUser.getJwt();
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+    });
+
+    res.json({ message: "Data Added successfully", data: savedUser });
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
   }
@@ -51,7 +64,8 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, {
         expires: new Date(Date.now() + 8 * 3600000),
       });
-      res.send("Login Successful");
+      console.log("Logins");
+      res.send(user);
     }
   } catch (err) {
     res.status(400).send("ERROR:" + err.message);
