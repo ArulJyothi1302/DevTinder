@@ -7,7 +7,7 @@ const userSchema = mongoose.Schema(
     fName: {
       type: String,
       required: true,
-      minlength: 4,
+      minlength: 3,
       maxlength: 50,
       trim: true,
     },
@@ -51,11 +51,13 @@ const userSchema = mongoose.Schema(
     },
     photoUrl: {
       type: String,
-      default:
-        "https://www.google.com/url?sa=i&url=https%3A%2F%2Fuxwing.com%2Fuser-male-icon%2F&psig=AOvVaw0WottDsniUsUUBOAqad5LQ&ust=1734887116717000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCJiElaqsuYoDFQAAAAAdAAAAABAE",
+      default: "https://geographyandyou.com/images/user-profile.png",
     },
     skills: {
       type: [String],
+    },
+    about: {
+      type: String,
     },
   },
   {

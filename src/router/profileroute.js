@@ -5,7 +5,8 @@ const { UserAuth } = require("../middleware/UserAuth");
 const { validateEditProfile, validatePassword } = require("../utils/helper");
 const User = require("../models/user");
 const { validatePasswordUpdate } = require("../controller/userController");
-profileRoute.get("/profile", UserAuth, async (req, res) => {
+profileRoute.get("/profile/view", UserAuth, async (req, res) => {
+  console.log("Inside Profile");
   try {
     const user = req.user;
     if (!user) {
@@ -17,22 +18,29 @@ profileRoute.get("/profile", UserAuth, async (req, res) => {
   }
 });
 profileRoute.patch("/profile/edit", UserAuth, async (req, res) => {
+  console.log("Inside Patch");
   try {
     if (!validateEditProfile(req)) {
+      console.log("Validating.....");
       throw new Error("Unable to Update the Profile");
     }
     const loggedinUser = req.user;
     if (!loggedinUser) {
+      console.log("Checking.............");
       throw new Error("User Not Found");
     }
     console.log("Before Update:" + loggedinUser);
 
     Object.keys(req.body).forEach((key) => (loggedinUser[key] = req.body[key]));
-    loggedinUser.save();
+    await loggedinUser.save();
 
     console.log("After Update:" + loggedinUser);
-    res.send(`${loggedinUser.fName} your Profile is Updated Successfully`);
+    res.json({
+      messsage: `${loggedinUser.fName} your Profile is Updated Successfully`,
+      data: loggedinUser,
+    });
   } catch (err) {
+    console.log("Error Arrived");
     res.status(404).send("ERROR:" + err.message);
   }
 });
@@ -47,7 +55,11 @@ profileRoute.patch("/profile/password", UserAuth, async (req, res) => {
     }
 
     await validatePasswordUpdate(loggedinUser, req.body.password);
-    res.send(`${loggedinUser.fName} your  Password Updated`);
+    console.log("patch req");
+    res.json({
+      message: `${loggedinUser.fName} your  Password Updated`,
+      data: loggedinUser,
+    });
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
   }
