@@ -36,5 +36,5 @@ conDb()
     });
   })
   .catch((err) => {
-    console.error("Not Connected");
+    console.error("Database Not Connected");
   });
