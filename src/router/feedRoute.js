@@ -4,7 +4,7 @@ const User = require("../models/user");
 const { UserAuth } = require("../middleware/UserAuth");
 
 const connectionRequest = require("../models/connectionRequest");
-// const { connection } = require("mongoose");
+
 const SafeData = "fName lName age gender skills photoUrl";
 feedRoute.get("/feed", UserAuth, async (req, res) => {
   try {
