@@ -3,6 +3,7 @@ const { UserAuth } = require("../middleware/UserAuth");
 const ConnectionRequestModel = require("../models/connectionRequest");
 const reqRoute = express.Router();
 const User = require("../models/user");
+const sendEmail = require("../utils/sesSendEmail");
 
 //Sending Request
 reqRoute.post("/request/send/:status/:touserid", UserAuth, async (req, res) => {
@@ -33,6 +34,7 @@ reqRoute.post("/request/send/:status/:touserid", UserAuth, async (req, res) => {
       toUserId,
       status,
     });
+
     // check valid user
 
     // checking only 2 status
@@ -41,6 +43,13 @@ reqRoute.post("/request/send/:status/:touserid", UserAuth, async (req, res) => {
     }
 
     const RequestData = await connectionRequest.save();
+
+    const emailRes = await sendEmail.run(
+      "New Req in DevHub",
+      req.user.fName + " sent you a request"
+    );
+    console.log("email:", emailRes);
+    console.log("gName:", req.user.fName);
     res.json({
       message: "Connection Request Sent Successfully",
       data: RequestData,
