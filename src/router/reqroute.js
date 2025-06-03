@@ -48,8 +48,6 @@ reqRoute.post("/request/send/:status/:touserid", UserAuth, async (req, res) => {
       "New Req in DevHub",
       req.user.fName + " sent you a request"
     );
-    console.log("email:", emailRes);
-    console.log("gName:", req.user.fName);
     res.json({
       message: "Connection Request Sent Successfully",
       data: RequestData,

@@ -6,6 +6,7 @@ const cors = require("cors");
 
 const conDb = require("./config/database");
 require("dotenv").config();
+require("./utils/cronJob");
 app.use(
   cors({
     origin: "http://localhost:5173", // Replace with your frontend URL
