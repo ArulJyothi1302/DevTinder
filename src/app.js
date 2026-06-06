@@ -1,17 +1,23 @@
+require("dotenv").config();
+
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const app = express();
 
 const cors = require("cors");
+console.log("MONGO_URI =", process.env.DB_URI);
 
 const conDb = require("./config/database");
-require("dotenv").config();
 require("./utils/cronJob");
 app.use(
   cors({
-    origin: "http://localhost:5173", // Replace with your frontend URL
+    origin: [
+      "http://localhost:5173", // Replace with your frontend URL
+      "https://devagent.site",
+      "https://www.devagent.site",
+    ],
     credentials: true,
-  })
+  }),
 );
 const authRouter = require("./router/authroute");
 const profileRoute = require("./router/profileroute");
