@@ -15,6 +15,7 @@ app.use(
       "http://localhost:5173", // Replace with your frontend URL
       "https://devagent.site",
       "https://www.devagent.site",
+      "https://dev-hub-web-lfu6-6shlshpg1-aruljyothi1302s-projects.vercel.app",
     ],
     credentials: true,
   }),
