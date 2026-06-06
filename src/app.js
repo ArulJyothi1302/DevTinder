@@ -5,7 +5,6 @@ const cookieParser = require("cookie-parser");
 const app = express();
 
 const cors = require("cors");
-console.log("MONGO_URI =", process.env.DB_URI);
 
 const conDb = require("./config/database");
 require("./utils/cronJob");
