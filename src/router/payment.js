@@ -58,8 +58,10 @@ paymentRoute.post("/payment/webhook", async(req,res)=>{
 
         const paymentDetails = req.body.payload.entity;
 
-        const payment = await Payment.findOne({ orderId: paymentDetails.orderId});
+        const payment = await Payment.findOne({ orderId: paymentDetails.order_id});
+        console.log("Payment Found:", payment);
         payment.status = paymentDetails.status;
+        console.log("Payment Status Updated:", payment.status);
         
         await payment.save();
 
