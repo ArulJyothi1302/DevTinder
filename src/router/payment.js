@@ -56,7 +56,7 @@ paymentRoute.post("/payment/webhook", async(req,res)=>{
 
         // Update payment status in DB based on webhook payload
 
-        const paymentDetails = req.body.payload.entity;
+        const paymentDetails = req.body.payload.payment.entity;
         console.log("Payment Details from Webhook:", paymentDetails);
 
         const payment = await Payment.findOne({ orderId: paymentDetails.order_id});
