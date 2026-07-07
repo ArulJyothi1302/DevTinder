@@ -58,7 +58,7 @@ paymentRoute.post("/payment/webhook", async(req,res)=>{
 
         const paymentDetails = req.body.payload.entity;
 
-        const payment = await Payment.findOne({ orderId: paymentDetails.order_id});
+        const payment = await Payment.findOne({ orderId: paymentDetails.orderId});
         payment.status = paymentDetails.status;
         
         await payment.save();
@@ -70,7 +70,9 @@ paymentRoute.post("/payment/webhook", async(req,res)=>{
 
         // update the user as premium
         if(req.body.event === "payment.captured" && membershipType){
+            console.log("Payment Captured for user:", user._id, "Membership Type:", membershipType);
             user.membershipType = membershipType;
+            console.log("User updated as premium:", user);
         }
 
         if(req.body.event === "payment.failed"){
