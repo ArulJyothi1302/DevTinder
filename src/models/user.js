@@ -61,15 +61,15 @@ const userSchema = mongoose.Schema(
     },
     isPremium: {
       type: Boolean,
-      default: false
+      default: false,
     },
     membershipType: {
-      type: String
-    }
+      type: String,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 userSchema.methods.getJwt = async function () {
