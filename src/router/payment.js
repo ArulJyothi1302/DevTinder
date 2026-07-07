@@ -60,6 +60,9 @@ paymentRoute.post("/payment/webhook", async(req,res)=>{
         console.log("Payment Details from Webhook:", paymentDetails);
 
         const payment = await Payment.findOne({ orderId: paymentDetails.order_id});
+        if(!payment){
+            return res.status(404).json({ error: "Payment not found"});
+        }
         console.log("Payment Found:", payment);
         payment.status = paymentDetails.status;
         console.log("Payment Status Updated:", payment.status);
@@ -67,7 +70,10 @@ paymentRoute.post("/payment/webhook", async(req,res)=>{
         await payment.save();
 
         // update the user as premium user if payment is successful
-        const user = await User.findOne({ _id: payment.userId});
+        const user = await User.findById({ _id: payment.userId});
+        if(!user){
+            return res.status(404).json({ error: "User not found"});
+        }
         user.isPremium = true;
         const membershipType = payment.notes.membership;
 
@@ -76,12 +82,16 @@ paymentRoute.post("/payment/webhook", async(req,res)=>{
             console.log("Payment Captured for user:", user._id, "Membership Type:", membershipType);
             user.membershipType = membershipType;
             console.log("User updated as premium:", user);
+            await user.save();
         }
 
         if(req.body.event === "payment.failed"){
             user.isPremium = false;
             user.membershipType = null;
+            await user.save();
+
         }
+        
 
         return res.status(200).json({ message: "Payment status updated successfully"});
     }
