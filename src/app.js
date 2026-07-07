@@ -24,6 +24,7 @@ const profileRoute = require("./router/profileroute");
 const reqRoute = require("./router/reqroute");
 const feedRoute = require("./router/feedRoute");
 const userRoute = require("./router/userRoute");
+const paymentRoute = require("./router/payment");
 
 app.use(express.json());
 
@@ -34,6 +35,7 @@ app.use("/", profileRoute);
 app.use("/", feedRoute);
 app.use("/", reqRoute);
 app.use("/", userRoute);
+app.use("/", paymentRoute);
 
 conDb()
   .then(() => {
