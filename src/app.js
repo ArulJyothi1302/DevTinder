@@ -7,7 +7,10 @@ const app = express();
 const cors = require("cors");
 
 const conDb = require("./config/database");
+const http = require("http");
 require("./utils/cronJob");
+
+const server = http.createServer(app);
 app.use(
   cors({
     origin: [
@@ -25,6 +28,8 @@ const reqRoute = require("./router/reqroute");
 const feedRoute = require("./router/feedRoute");
 const userRoute = require("./router/userRoute");
 const paymentRoute = require("./router/payment");
+const chatRoute = require("./router/chat");
+const initializeSocket = require("./utils/socket");
 
 app.use(express.json());
 
@@ -36,11 +41,13 @@ app.use("/", feedRoute);
 app.use("/", reqRoute);
 app.use("/", userRoute);
 app.use("/", paymentRoute);
+app.use("/", chatRoute);
 
+initializeSocket(server);
 conDb()
   .then(() => {
     console.log("Db Connected Succefully");
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log("Server connected to port 7777");
     });
   })

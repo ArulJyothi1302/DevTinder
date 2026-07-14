@@ -115,6 +115,7 @@ paymentRoute.get("/premium/verify", UserAuth, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     if (user.isPremium) {
+        console.log("User is premium:", user._id, "Membership Type:", user.membershipType);
       return res
         .status(200)
         .json({ isPremium: true, membershipType: user.membershipType });
