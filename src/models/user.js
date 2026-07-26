@@ -28,6 +28,10 @@ const userSchema = mongoose.Schema(
         }
       },
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
     password: {
       type: String,
     },
@@ -53,6 +57,27 @@ const userSchema = mongoose.Schema(
       type: String,
       default: "https://geographyandyou.com/images/user-profile.png",
     },
+    providers: [
+      {
+        type: {
+          type: String,
+          enum: ["local", "google"],
+          required: true,
+        },
+        providerId: {
+          type: String,
+          default: null,
+        },
+        linkedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    profileCompleted: {
+      type: Boolean,
+      default: false,
+    },
     skills: {
       type: [String],
     },
@@ -74,9 +99,15 @@ const userSchema = mongoose.Schema(
 
 userSchema.methods.getJwt = async function () {
   const user = this;
-  const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "8h",
-  });
+  const token = await jwt.sign(
+    {
+      _id: user._id,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "8h",
+    },
+  );
   return token;
 };
 userSchema.methods.validatePassword = async function (inputPassword) {
@@ -84,6 +115,10 @@ userSchema.methods.validatePassword = async function (inputPassword) {
   const hashedPassword = user.password;
   const isValidPassword = await bcrypt.compare(inputPassword, hashedPassword);
   return isValidPassword;
+};
+
+userSchema.methods.hasProvider = function (providerType) {
+  return this.providers.some((provider) => provider.type === providerType);
 };
 
 // another way
@@ -103,5 +138,6 @@ userSchema.methods.validatePassword = async function (inputPassword) {
 //     }
 //   });
 //    }
+userSchema.index({ "providers.providerId": 1 });
 const UserModeel = mongoose.model("User", userSchema);
 module.exports = UserModeel;

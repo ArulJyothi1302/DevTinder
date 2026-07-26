@@ -9,7 +9,6 @@ const {
 } = require("razorpay/dist/utils/razorpay-utils");
 const User = require("../models/user.js");
 
-console.log("getting payment route");
 paymentRoute.post("/payment/create", UserAuth, async (req, res) => {
   try {
     console.log("Payment Route Hit");
@@ -115,7 +114,12 @@ paymentRoute.get("/premium/verify", UserAuth, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     if (user.isPremium) {
-        console.log("User is premium:", user._id, "Membership Type:", user.membershipType);
+      console.log(
+        "User is premium:",
+        user._id,
+        "Membership Type:",
+        user.membershipType,
+      );
       return res
         .status(200)
         .json({ isPremium: true, membershipType: user.membershipType });

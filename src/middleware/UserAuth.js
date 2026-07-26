@@ -3,8 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const UserAuth = async (req, res, next) => {
   try {
-    const cookies = req.cookies;
-    const { token } = cookies;
+    const { token } = req.cookies;
     if (!token) {
       return res.status(401).send("Please Login");
     }
@@ -17,7 +16,7 @@ const UserAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    res.status(400).send("ERROR:" + err.message);
+    res.status(401).send("ERROR:" + err.message);
   }
 };
 module.exports = { UserAuth };

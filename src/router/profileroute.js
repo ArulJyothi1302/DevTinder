@@ -23,12 +23,12 @@ profileRoute.patch("/profile/edit", UserAuth, async (req, res) => {
     }
     const loggedinUser = req.user;
     if (!loggedinUser) {
-      console.log("Checking.............");
       throw new Error("User Not Found");
     }
     console.log("Before Update:" + loggedinUser);
 
     Object.keys(req.body).forEach((key) => (loggedinUser[key] = req.body[key]));
+    loggedinUser.profileCompleted = true;
     await loggedinUser.save();
 
     console.log("After Update:" + loggedinUser);
@@ -45,6 +45,11 @@ profileRoute.patch("/profile/password", UserAuth, async (req, res) => {
     const loggedinUser = req.user;
     if (!loggedinUser) {
       throw new Error("User Not Found");
+    }
+    if (!loggedinUser.hasProvider("local")) {
+      throw new Error(
+        "This account uses Google Sign-In. Link a password first before changing it.",
+      );
     }
     if (!validatePassword(req)) {
       throw new Error("Unable to Update the Profile Check Password");

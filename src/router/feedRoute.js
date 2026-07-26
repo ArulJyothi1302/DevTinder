@@ -10,16 +10,15 @@ feedRoute.get("/feed", UserAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
 
-    const page = parseInt(req.query.page) || 1;
+    const { cursor } = req.query;
     let limit = parseInt(req.query.limit) || 10;
     limit = limit > 20 ? 10 : limit;
-    const skip = (page - 1) * limit;
-
     const connections = await connectionRequest
       .find({
         $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
       })
       .select("fromUserId toUserId");
+
     // .populate("fromUserId", SafeData);
 
     const HideUsers = new Set();
@@ -29,6 +28,22 @@ feedRoute.get("/feed", UserAuth, async (req, res) => {
     });
 
     // console.log(HideUsers);
+
+    const query = {
+      $and: [
+        {
+          _id: { $nin: Array.from(HideUsers) },
+        },
+        {
+          _id: { $ne: loggedInUser._id },
+        },
+      ],
+    };
+    if (cursor) {
+      query.$and.push({
+        _id: { $lt: cursor },
+      });
+    }
 
     const users = await User.find({
       $and: [
@@ -41,10 +56,13 @@ feedRoute.get("/feed", UserAuth, async (req, res) => {
       ],
     })
       .select(SafeData)
-      .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .sort({ _id: -1 });
 
-    res.json({ data: users });
+    const nextCursor = users.length > 0 ? users[users.length - 1]._id : null;
+    const hasMore = users.length === limit;
+
+    res.json({ data: users, nextCursor: nextCursor, hasMore: hasMore });
   } catch (err) {
     res.status(404).send("ERROR: " + err.message);
   }

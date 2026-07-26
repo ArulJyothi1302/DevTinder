@@ -23,7 +23,7 @@ const validateEditProfile = (req) => {
     "about",
   ];
   const isAllowed = Object.keys(req.body).every((field) =>
-    AllowedData.includes(field)
+    AllowedData.includes(field),
   );
   return isAllowed;
 };
@@ -31,11 +31,25 @@ const validateEditProfile = (req) => {
 const validatePassword = (req) => {
   const AllowedData = ["password"];
   const isAllowed = Object.keys(req.body).every((field) =>
-    AllowedData.includes(field)
+    AllowedData.includes(field),
   );
   if (!validator.isStrongPassword(req.body.password)) {
     throw new Error("Invalid password, password should be Strong ");
   }
   return isAllowed;
 };
-module.exports = { validateSignUp, validateEditProfile, validatePassword };
+
+const setAuthCookie = (res, token) => {
+  res.cookie("token", token, {
+    expires: new Date(Date.now() + 8 * 3600000),
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+};
+module.exports = {
+  validateSignUp,
+  validateEditProfile,
+  validatePassword,
+  setAuthCookie,
+};
