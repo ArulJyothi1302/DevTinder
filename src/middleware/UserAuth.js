@@ -3,11 +3,11 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const UserAuth = async (req, res, next) => {
   try {
-    const { token } = req.cookies;
-    if (!token) {
+    const { accessToken } = req.cookies;
+    if (!accessToken) {
       return res.status(401).send("Please Login");
     }
-    const decodedMsg = await jwt.verify(token, process.env.JWT_SECRET);
+    const decodedMsg = jwt.verify(accessToken, process.env.JWT_SECRET);
     const id = decodedMsg;
     const user = await User.findById(id);
     if (!user) {

@@ -39,17 +39,24 @@ const validatePassword = (req) => {
   return isAllowed;
 };
 
-const setAuthCookie = (res, token) => {
-  res.cookie("token", token, {
-    expires: new Date(Date.now() + 8 * 3600000),
+const setAuthCookies = (res, accessToken, refreshToken) => {
+  res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
 module.exports = {
   validateSignUp,
   validateEditProfile,
   validatePassword,
-  setAuthCookie,
+  setAuthCookies,
 };

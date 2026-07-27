@@ -97,18 +97,27 @@ const userSchema = mongoose.Schema(
   },
 );
 
-userSchema.methods.getJwt = async function () {
-  const user = this;
-  const token = await jwt.sign(
+userSchema.methods.getAccessToken = function () {
+  return jwt.sign(
     {
-      _id: user._id,
+      _id: this._id,
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: "8h",
+      expiresIn: "15m",
     },
   );
-  return token;
+};
+userSchema.methods.getRefreshToken = function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+    },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: "7d",
+    },
+  );
 };
 userSchema.methods.validatePassword = async function (inputPassword) {
   const user = this;

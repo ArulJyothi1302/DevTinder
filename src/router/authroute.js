@@ -1,11 +1,13 @@
 const express = require("express");
-const { validateSignUp, setAuthCookie } = require("../utils/helper");
+const { validateSignUp, setAuthCookies } = require("../utils/helper");
 const { validateLogin } = require("../utils/login");
 const { OAuth2Client } = require("google-auth-library");
 const authRouter = express.Router();
-
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const RefreshToken = require("../models/refreshToken");
 const bcrypt = require("bcrypt");
+const { REFRESH_TOKEN_EXPIRY } = require("../utils/constants");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 //signup
 
@@ -62,8 +64,15 @@ authRouter.post("/google", async (req, res) => {
         await user.save();
       }
     }
-    const token = await user.getJwt();
-    setAuthCookie(res, token);
+    const accessToken = user.getAccessToken();
+    const refreshToken = user.getRefreshToken();
+    await RefreshToken.create({
+      userId: user._id,
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY),
+    });
+
+    setAuthCookies(res, accessToken, refreshToken);
     res.status(200).json({
       message: "Google login successful",
       user,
@@ -105,8 +114,15 @@ authRouter.post("/signup", async (req, res) => {
       throw new Error("Set a Valid Age");
     }
     const savedUser = await user.save();
-    const token = await savedUser.getJwt();
-    setAuthCookie(res, token);
+    const accessToken = user.getAccessToken();
+    const refreshToken = user.getRefreshToken();
+    await RefreshToken.create({
+      userId: user._id,
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY),
+    });
+
+    setAuthCookies(res, accessToken, refreshToken);
 
     res.json({ message: "Data Added successfully", data: savedUser });
   } catch (err) {
@@ -135,8 +151,15 @@ authRouter.post("/login", async (req, res) => {
     if (!isCorrectPassword) {
       throw new Error("Invalid Credentials");
     } else {
-      const token = await user.getJwt();
-      setAuthCookie(res, token);
+      const accessToken = user.getAccessToken();
+      const refreshToken = user.getRefreshToken();
+
+      await RefreshToken.create({
+        userId: user._id,
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY),
+      });
+      setAuthCookies(res, accessToken, refreshToken);
       console.log("Logins");
       res.send(user);
     }
@@ -145,14 +168,79 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-module.exports = authRouter;
-
 authRouter.post("/logout", async (req, res) => {
-  res.cookie("token", null, {
-    expires: new Date(Date.now()),
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  });
-  await res.send("Logout Successful");
+  try {
+    const { refreshToken } = req.cookies;
+
+    console.log("Refresh Token:", refreshToken);
+
+    const result = await RefreshToken.deleteOne({
+      token: refreshToken,
+    });
+
+    console.log("Delete Result:", result);
+
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(200).send("Logout Successful");
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: err.message,
+    });
+  }
 });
+authRouter.post("/refresh-token", async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies;
+    console.log("rToken:", refreshToken);
+    if (!refreshToken) {
+      return res.status(401).send("Refresh token is missing");
+    }
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const savedToken = await RefreshToken.findOne({
+      token: refreshToken,
+    });
+
+    if (!savedToken) {
+      return res.status(401).json({
+        message: "Invalid refresh token",
+      });
+    }
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      return res.status(401).send("User not found");
+    }
+    await RefreshToken.deleteOne({
+      token: refreshToken,
+    });
+    const accessToken = user.getAccessToken();
+    const newRefreshToken = user.getRefreshToken();
+    await RefreshToken.create({
+      userId: user._id,
+      token: newRefreshToken,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY),
+    });
+    setAuthCookies(res, accessToken, newRefreshToken);
+    return res.status(200).json({
+      message: "Access token Refreshed",
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(401).json({
+      message: err.message,
+    });
+  }
+});
+module.exports = authRouter;
