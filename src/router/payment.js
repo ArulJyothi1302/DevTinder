@@ -15,7 +15,7 @@ paymentRoute.post("/payment/create", UserAuth, async (req, res) => {
     const { memberShipType } = req.body;
     console.log("type:",memberShipType);
     const { fName, lName, email } = req.user;
-    console.log("MembershipAmount:",memberShipAmount,memberShipAmount[memberShipType]);
+    console.log("MembershipAmount:",memberShipAmount,memberShipAmount.memberShipType);
     const createOrder = await razPayInstance.orders.create({
       amount: memberShipAmount[memberShipType] * 100,
       currency: "INR",
