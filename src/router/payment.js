@@ -13,6 +13,7 @@ paymentRoute.post("/payment/create", UserAuth, async (req, res) => {
   try {
     console.log("Payment Route Hit");
     const { memberShipType } = req.body;
+    console.log("type:",memberShipType);
     const { fName, lName, email } = req.user;
     console.log("MembershipAmount:",memberShipAmount[memberShipType]);
     const createOrder = await razPayInstance.orders.create({
